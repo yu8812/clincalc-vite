@@ -2,35 +2,6 @@
 
 > 整合 ADA 2026、KDIGO 2024 最新醫學指引。支援 Claude / GPT / Gemini AI。完全免費，資料不離開您的裝置。
 
-## 🚀 快速開始（本機開發）
-
-```bash
-# 1. 安裝依賴（只需要做一次）
-npm install
-
-# 2. 啟動開發伺服器
-npm run dev
-# → 開啟 http://localhost:5173
-```
-
-## 📦 部署到 GitHub Pages
-
-### 一次性設定
-1. 把這個資料夾 push 到你的 GitHub repo
-2. 開啟 repo 的 **Settings → Pages**
-3. Source 選 **GitHub Actions**
-4. 修改 `vite.config.js` 的 `base` 為你的 repo 名稱：
-   ```js
-   base: '/你的repo名稱/',
-   ```
-5. Push 到 `main` branch → GitHub Actions 自動 build + deploy
-
-### 手動 build
-```bash
-npm run build
-# 輸出到 ./dist/
-```
-
 ## 📁 專案結構
 
 ```
