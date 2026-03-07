@@ -1,0 +1,54 @@
+name: 部署 ClinCalc 到 GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # 允許手動觸發
+  workflow_dispatch:
+
+# 設定 GitHub Pages 所需的權限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 確保同時只有一個部署在進行
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: 📥 Checkout 程式碼
+        uses: actions/checkout@v4
+
+      - name: 🟢 設定 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 安裝依賴
+        run: npm ci
+
+      - name: 🔨 Vite Build
+        run: npm run build
+        # build 輸出到 ./dist/
+
+      - name: 📋 Setup GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: 📤 Upload 到 Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+      - name: 🚀 Deploy 到 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
