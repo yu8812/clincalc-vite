@@ -36,7 +36,7 @@ function showSec(id){
   const s=document.getElementById('s-'+id);if(s){s.classList.add('on');window.scrollTo(0,0);}
   document.querySelectorAll('.ntab').forEach(t=>{if((t.getAttribute('onclick')||'').includes("'"+id+"'"))t.classList.add('on');});
 }
-function goDr(){if(!isDoctor){document.getElementById('modal-login').classList.add('on');setTimeout(()=>document.getElementById('dr_pwd').focus(),80);}else{showSec('dr');}}
+/* goDr() — superseded by Auth module */
 function showCalc(id){
   showSec('calc');
   document.querySelectorAll('.cp').forEach(p=>p.classList.remove('on'));
@@ -120,7 +120,12 @@ function saveAllProviderSettings(){
   const geminiKeyEl = document.getElementById('key_gemini');
   if(claudeKeyEl?.value){ClinCalc.Config.ai.claudeKey=claudeKeyEl.value;localStorage.setItem('cc_key',claudeKeyEl.value);document.getElementById('dr_api').value=claudeKeyEl.value;const ak=document.getElementById('ai_key');if(ak)ak.value=claudeKeyEl.value;}
   if(openaiKeyEl?.value){ClinCalc.Config.ai.openaiKey=openaiKeyEl.value;localStorage.setItem('cc_openai_key',openaiKeyEl.value);}
-  if(geminiKeyEl?.value){ClinCalc.Config.ai.geminiKey=geminiKeyEl.value;localStorage.setItem('cc_gemini_key',geminiKeyEl.value);}
+  if(geminiKeyEl?.value){ClinCalc.Config.ai.geminiKey=geminiKeyEl.value;localStorage.setItem('cc_gemini_key',geminiKeyEl.value);
+    const geminiModelEl = document.getElementById('gemini_model');
+    if (geminiModelEl) {
+      ClinCalc.Config.ai.geminiModel = geminiModelEl.value;
+      localStorage.setItem('cc_gemini_model', geminiModelEl.value);
+    }}
   const modelEl=document.getElementById('model_'+p);
   if(modelEl){if(p==='claude')ClinCalc.Config.ai.claudeModel=modelEl.value;if(p==='openai')ClinCalc.Config.ai.openaiModel=modelEl.value;}
   ClinCalc.Config.save();
@@ -230,16 +235,17 @@ function showDBTab(id){
 }
 
 // ─── MODAL ───
-function closeModal(){document.getElementById('modal-login').classList.remove('on');document.getElementById('dr_pwd').value='';document.getElementById('login-err').style.display='none';}
-function doLogin(){
-  if(document.getElementById('dr_pwd').value===DR_PWD){
-    isDoctor=true;closeModal();
-    document.getElementById('drBtn').innerHTML='<span class="dpulse"></span>醫師模式';
-    document.getElementById('drBtn').classList.add('on');
-    showSec('dr');
-    loadStoredSB();
-  }else{document.getElementById('login-err').style.display='flex';}
+function closeModal(){
+  const authModal = document.getElementById('modal-auth');
+  if (authModal) authModal.classList.remove('on');
+  const legacyModal = document.getElementById('modal-login');
+  if (legacyModal) legacyModal.classList.remove('on');
+  const loginErr = document.getElementById('login-err');
+  if (loginErr) loginErr.style.display = 'none';
+  const regErr = document.getElementById('reg-err');
+  if (regErr) regErr.style.display = 'none';
 }
+/* doLogin() — superseded by Auth module in auth.js */
 
 // ─── LOADER ───
 function showLoad(t){document.getElementById('loader-txt').textContent=t||'計算中...';document.getElementById('loader').classList.add('on');}
