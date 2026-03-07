@@ -2,8 +2,7 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   // base 要改成你的 GitHub repo 名稱
-  // 例如：你的網址是 yu8812.github.io/ClinCalcc → base: '/ClinCalcc/'
-  base: '/ClinCalcc/',
+  base: '/clincalc-vite/',
 
   build: {
     outDir: 'dist',
@@ -31,8 +30,7 @@ export default defineConfig({
           'doctor': [
             './src/doctor/form.js',
             './src/doctor/drug.js',
-            './src/doctor/dashboard.js',
-            './src/doctor/stats.js',
+            './src/doctor/data.js',
           ],
         }
       }
