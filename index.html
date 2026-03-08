@@ -67,7 +67,7 @@
     <p class="hsub">整合 ADA 2026、KDIGO 2024 最新指引。支援 Claude / GPT / Gemini / Supabase AI 四大提供商，去識別化資料儲存，完全免費，資料不離開您的裝置。</p>
     <div class="hbtns">
       <button class="btn bt" onclick="showSec('calc')" style="font-size:14px;padding:11px 26px;">🔬 計算工具</button>
-      <button class="btn bs" onclick="showSec('ai')" style="font-size:14px;padding:11px 26px;">🤖 AI 檢測</button>
+      <button class="btn bs" onclick="showSec('ai')" style="font-size:14px;padding:11px 26px;">🤖 免費 AI 評估</button>
       <button class="btn bv" onclick="goDr()" style="font-size:14px;padding:11px 26px;">👨‍⚕️ 醫師專區</button>
     </div>
   </div>
@@ -423,52 +423,34 @@
 <div class="sec" id="s-ai">
 <div class="si">
   <div class="ph">
-    <div class="pt">🤖 AI 檢測</div>
-    <div class="ps">症狀智能評估 · Claude AI 輔助分析</div>
-    <div class="ptags"><span class="tag tr">AI 建議僅供參考</span><span class="tag ta">非醫療診斷</span></div>
+    <div class="pt">🤖 AI 症狀評估</div>
+    <div class="ps">免費 · 無需帳號 · Gemini AI 輔助分析 · 資料不離開您的裝置</div>
+    <div class="ptags">
+      <span class="tag tr">AI 建議僅供參考</span>
+      <span class="tag ta">非醫療診斷</span>
+      <span class="tag" style="background:rgba(0,201,167,.1);color:var(--teal);border:1px solid rgba(0,201,167,.2);">✦ 完全免費</span>
+    </div>
   </div>
 
   <!-- DISCLAIMER -->
   <div style="background:rgba(244,63,94,.07);border:1px solid rgba(244,63,94,.2);border-radius:var(--r);padding:16px;margin-bottom:18px;">
     <div style="font-family:var(--ff-m);font-size:10px;letter-spacing:1.5px;color:var(--rose);text-transform:uppercase;margin-bottom:10px;">⚠️ 免責聲明 — 請詳閱後使用</div>
     <div style="font-size:12.5px;color:var(--t2);line-height:1.85;">
-      1. 本工具由人工智能（Claude AI）提供症狀評估，<strong style="color:var(--t1);">所有結果均標示「AI 建議」字樣，不構成正式醫療診斷</strong>。<br>
+      1. 本工具由 Google Gemini AI 提供症狀評估，<strong style="color:var(--t1);">所有結果均標示「AI 建議」字樣，不構成正式醫療診斷</strong>。<br>
       2. AI 評估結果<strong style="color:var(--t1);">不得取代臨床醫師診斷</strong>，亦不得作為處方或治療依據。<br>
       3. 若出現<strong style="color:#fda4af;">胸痛、呼吸困難、意識改變、大量出血</strong>等緊急症狀，請<strong style="color:var(--rose);">立即撥打 119 或前往急診</strong>，勿使用本工具延誤就醫。<br>
-      4. 本工具不儲存任何個人健康資訊，所有對話透過您的 API Key 與 Anthropic 伺服器傳輸，請勿輸入可識別個人身份的資訊。<br>
+      4. 本工具不儲存任何個人健康資訊，症狀內容透過加密連線傳送至 Google AI 進行分析，請勿輸入可識別個人身份的資訊（如姓名、身分證字號）。<br>
       5. 本平台依台灣醫療法第 9 條及個人資料保護法，不提供診療行為，本網站不承擔使用 AI 建議所產生之任何醫療責任。
     </div>
     <div style="margin-top:12px;display:flex;align-items:center;gap:8px;">
       <input type="checkbox" id="dis_agree" style="accent-color:var(--teal);width:14px;height:14px;">
-      <label for="dis_agree" style="font-size:12.5px;cursor:pointer;">我已閱讀並理解上述免責聲明，同意使用 AI 檢測功能</label>
+      <label for="dis_agree" style="font-size:12.5px;cursor:pointer;">我已閱讀並理解上述免責聲明，同意使用 AI 症狀評估功能</label>
     </div>
   </div>
 
+  <!-- 基本資料 -->
   <div class="card" style="margin-bottom:14px;">
-    <div class="ch">API 設定 · 必須完成才能使用 AI 功能</div>
-    <div class="g2">
-      <div class="fg">
-        <label class="fl">Anthropic API Key</label>
-        <input type="password" class="fi" id="ai_key" placeholder="sk-ant-..." oninput="onApiKeyChange()">
-        <div class="hint">Key 儲存於本機，不上傳至本平台伺服器。<a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--teal);margin-left:4px;">取得 API Key →</a></div>
-      </div>
-      <div class="fg" style="align-self:end;">
-        <div class="api-test-row">
-          <button class="btn bs" onclick="saveKey()">💾 儲存 Key</button>
-          <button class="btn bv" onclick="testAPIKey()">🔬 測試連線</button>
-        </div>
-        <div class="test-status" id="ai-test-status"></div>
-        <div class="hint" style="margin-top:6px;">需先「測試成功」才會解鎖下方填寫欄位。</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- AI FIELDS LOCK CONTAINER -->
-  <div id="ai-fields-container" class="ai-locked">
-    <div class="lock-badge" id="ai-lock-badge">🔒 請先設定並測試 API Key 才能使用</div>
-
-  <div class="card" style="margin-bottom:14px;">
-    <div class="ch">基本資料（選填，提升分析精確度）</div>
+    <div class="ch">基本資料 <span style="font-weight:400;color:var(--t3);">（選填，填寫越完整評估越準確）</span></div>
     <div class="g3">
       <div class="fg"><label class="fl">年齡</label><div class="iu"><input type="number" class="fi" id="ai_age" placeholder="歲"><span class="uu">歲</span></div></div>
       <div class="fg"><label class="fl">性別</label><select class="fsel" id="ai_sex"><option value="">未填</option><option value="male">男性</option><option value="female">女性</option></select></div>
@@ -478,20 +460,56 @@
     </div>
   </div>
 
+  <!-- 症狀選擇 -->
   <div class="card" style="margin-bottom:14px;">
-    <div class="ch">主要症狀（可複選）</div>
-    <div style="font-family:var(--ff-m);font-size:9px;letter-spacing:1px;color:var(--rose);margin-bottom:8px;">⚠️ 緊急症狀（紅色）— 出現時請直接就醫</div>
+    <div class="ch">主要症狀 <span style="font-weight:400;color:var(--t3);">（可複選）</span></div>
+    <div style="font-family:var(--ff-m);font-size:9px;letter-spacing:1px;color:var(--rose);margin-bottom:8px;">⚠️ 紅色緊急症狀 — 出現時請直接撥 119 或前往急診，勿依賴 AI</div>
     <div class="sym-g" id="sym-tags"></div>
-    <div class="fg" style="margin-top:12px;"><label class="fl">症狀持續時間</label><select class="fsel" id="ai_dur"><option value="">未填</option><option value="數小時">數小時內</option><option value="1-3天">1-3天</option><option value="約1週">約1週</option><option value="2-4週">2-4週</option><option value="超過1個月">超過1個月</option><option value="超過3個月">超過3個月</option></select></div>
-    <div class="fg"><label class="fl">嚴重程度（自評 1-10）</label><input type="range" min="1" max="10" value="5" class="fi" id="ai_sev" style="padding:5px;accent-color:var(--teal);" oninput="document.getElementById('ai_sevv').textContent=this.value"> <span id="ai_sevv" style="font-family:var(--ff-m);color:var(--teal);">5</span></div>
-    <div class="fg"><label class="fl">補充說明（症狀特徵、觸發因素等）</label><textarea class="fi" id="ai_note" rows="3" placeholder="如：飯後加重、運動時發作、伴隨發燒38.5°C..." style="font-family:var(--ff-b);font-size:13px;"></textarea></div>
+    <div class="fg" style="margin-top:12px;">
+      <label class="fl">症狀持續時間</label>
+      <select class="fsel" id="ai_dur">
+        <option value="">未填</option>
+        <option value="數小時">數小時內</option>
+        <option value="1-3天">1-3天</option>
+        <option value="約1週">約1週</option>
+        <option value="2-4週">2-4週</option>
+        <option value="超過1個月">超過1個月</option>
+        <option value="超過3個月">超過3個月（慢性）</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">嚴重程度（自評 1–10）</label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <input type="range" min="1" max="10" value="5" class="fi" id="ai_sev"
+          style="padding:5px;accent-color:var(--teal);flex:1;"
+          oninput="document.getElementById('ai_sevv').textContent=this.value">
+        <span id="ai_sevv" style="font-family:var(--ff-m);font-size:18px;font-weight:700;color:var(--teal);min-width:20px;">5</span>
+        <span style="font-size:11px;color:var(--t3);">/ 10</span>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">補充說明（症狀特徵、觸發因素、伴隨症狀）</label>
+      <textarea class="fi" id="ai_note" rows="3"
+        placeholder="如：飯後加重、運動時發作、伴隨發燒 38.5°C、昨晚開始..."
+        style="font-family:var(--ff-b);font-size:13px;"></textarea>
+    </div>
+
+    <!-- AI 使用量顯示 -->
+    <div id="ai-usage-bar" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;
+      padding:8px 12px;background:rgba(0,201,167,.06);border-radius:6px;border:1px solid rgba(0,201,167,.15);">
+      <span style="font-size:12px;">✦</span>
+      <span style="font-size:12px;color:var(--teal);font-family:var(--ff-m);">免費版 · Gemini 2.0 Flash</span>
+      <span style="margin-left:auto;font-size:11px;color:var(--t3);" id="ai-usage-count"></span>
+    </div>
+
     <div class="brow">
-      <button class="btn bt" onclick="runAI()">🤖 AI 評估症狀</button>
+      <button class="btn bt" style="font-size:14px;padding:12px 28px;" onclick="runAI()">🤖 開始 AI 症狀評估</button>
       <button class="btn bs" onclick="clearAI()">清除</button>
     </div>
+    <div style="font-size:11px;color:var(--t3);margin-top:8px;text-align:center;font-family:var(--ff-m);">
+      結果僅供參考 · 不替代醫師診斷 · 資料不儲存
+    </div>
   </div>
-
-  </div><!-- /ai-fields-container -->
 
   <div class="rp" id="rp-ai">
     <div class="rmain" id="ai-main"></div>
@@ -501,6 +519,7 @@
   </div>
 </div>
 </div><!-- /s-ai -->
+
 
 <div class="sec" id="s-dr">
 <div class="si">

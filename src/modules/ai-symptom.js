@@ -1,27 +1,17 @@
-
 function togSym(el,s){const i=selSym.indexOf(s);if(i===-1){selSym.push(s);el.classList.add('on');}else{selSym.splice(i,1);el.classList.remove('on');}}
 function clearAI(){selSym=[];document.querySelectorAll('.stag').forEach(e=>e.classList.remove('on'));['ai_note','ai_age','ai_med','ai_hx','ai_allergy'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});document.getElementById('ai_sev').value=5;document.getElementById('ai_sevv').textContent=5;document.getElementById('rp-ai').classList.remove('on');}
 // ─── API KEY LOCK/UNLOCK ───
 let aiApiUnlocked = false;
 
-function onApiKeyChange(){
-  const k = document.getElementById('ai_key').value;
-  if(!k){ setAILocked(true); }
-}
+function onApiKeyChange(){ /* deprecated */ }
 
 function setAILocked(locked){
+  // 公開版不鎖定，Gemini 免費直接使用
+  aiApiUnlocked = true;
   const container = document.getElementById('ai-fields-container');
   const badge = document.getElementById('ai-lock-badge');
-  aiApiUnlocked = !locked;
-  if(locked){
-    container.className = 'ai-locked';
-    badge.className = 'lock-badge';
-    badge.textContent = '🔒 請先設定並測試 API Key 才能使用';
-  } else {
-    container.className = 'ai-unlocked';
-    badge.className = 'lock-badge unlocked';
-    badge.textContent = '🔓 API Key 已驗證，功能已解鎖';
-  }
+  if(container) container.classList.remove('ai-locked');
+  if(badge) badge.style.display = 'none';
 }
 
 async function testAPIKey(){
@@ -58,38 +48,74 @@ async function testAPIKey(){
 
 function saveKey(){const k=document.getElementById('ai_key').value;if(k){localStorage.setItem('cc_key',k);showToast('✓ API Key 已儲存至本機', 'ok');}}
 async function runAI(){
-  if(!document.getElementById('dis_agree').checked){showToast('請先閱讀並勾選同意免責聲明', 'warn');return;}
-  const key=document.getElementById('ai_key').value||localStorage.getItem('cc_key');
-  if(!key){showToast('請輸入 Anthropic API Key', 'warn');return;}
-  if(!selSym.length){showToast('請選擇至少一個症狀', 'warn');return;}
-  const urgentSelected=selSym.some(s=>SYMS_URGENT.includes(s));
-  if(urgentSelected&&!confirm('⚠️ 您選擇了可能緊急的症狀。若症狀嚴重，請立即前往急診或撥打119，而非使用AI評估。\n\n是否仍要繼續 AI 評估（輕症參考用）？'))return;
-  showLoad('Claude AI 症狀分析中...');
+  if(!document.getElementById('dis_agree').checked){
+    showToast('請先閱讀並勾選同意免責聲明', 'warn'); return;
+  }
+  if(!selSym.length){
+    showToast('請至少選擇一個症狀', 'warn'); return;
+  }
+
+  // 緊急症狀警告
+  const urgentSelected = selSym.some(s => SYMS_URGENT.includes(s));
+  if(urgentSelected){
+    const go = confirm('⚠️ 您選擇了可能緊急的症狀。\n\n若症狀嚴重，請立即前往急診或撥打 119，不要依賴 AI 評估。\n\n是否仍要繼續（輕症參考用）？');
+    if(!go) return;
+  }
+
+  showLoad('Gemini AI 症狀分析中...');
   try{
-    const age=sv('ai_age'),sex=sv('ai_sex'),dur=sv('ai_dur'),sev=document.getElementById('ai_sev').value;
-    const hx=sv('ai_hx'),med=sv('ai_med'),allergy=sv('ai_allergy'),note=sv('ai_note');
+    const age=sv('ai_age'), sex=sv('ai_sex'), dur=sv('ai_dur');
+    const sev=document.getElementById('ai_sev').value;
+    const hx=sv('ai_hx'), med=sv('ai_med'), allergy=sv('ai_allergy'), note=sv('ai_note');
+
     const prompt=`你是台灣醫療AI助手（繁體中文），分析症狀並提供建議。所有建議需標示「AI建議」字樣。
-受檢者：年齡${age||'未填'}，性別${sex||'未填'}，病史：${hx||'無'}，用藥：${med||'無'}，過敏：${allergy||'無'}
+受檢者：年齡${age||'未填'}，性別${sex==='male'?'男性':sex==='female'?'女性':'未填'}，病史：${hx||'無'}，用藥：${med||'無'}，過敏：${allergy||'無'}
 症狀：${selSym.join('、')}。持續：${dur||'未填'}。嚴重度自評：${sev}/10。補充：${note||'無'}
 
-請以JSON回應：{"urgency":1-5,"label":"緊急程度描述","conditions":["可能診斷1","2","3"],"dept":"建議科別","home":["居家建議1","2","3"],"ai_see":["AI建議就醫情況1","2"],"warning":"若有緊急警示則填入，否則為null","follow":"後續追蹤建議"}`;
-    const r=await callClaude(key,prompt,1000);
-    const j=parseJ(r);
+請以JSON回應（不要加任何說明文字，只回傳JSON）：
+{"urgency":1到5的數字,"label":"緊急程度描述（如：低度緊急、中度注意）","conditions":["可能診斷1","可能診斷2","可能診斷3"],"dept":"建議就診科別","home":["居家照護建議1","建議2","建議3"],"ai_see":["AI建議就醫的情況1","情況2"],"warning":緊急警示字串或null,"follow":"後續追蹤建議"}`;
+
+    // 使用 ClinCalc.AI 統一介面（預設 Gemini 免費）
+    const r = await ClinCalc.AI.call(prompt, 1000);
+    const j = parseJ(r);
+
     if(j){
-      const uc={1:'#00c9a7',2:'#65a30d',3:'#f59e0b',4:'#dc2626',5:'#dc2626'};
-      document.getElementById('ai-main').innerHTML=`<div style="font-family:var(--ff-m);font-size:9px;letter-spacing:1.5px;color:var(--teal);text-transform:uppercase;">AI 症狀評估（僅供參考）</div><div class="rbig" style="color:${uc[j.urgency]||uc[3]};font-size:22px;">${j.label||'待評估'}</div>${j.warning?`<div class="al ar" style="margin-top:10px;">⚠️ AI 建議立即就醫：${j.warning}</div>`:''} ${j.urgency>=4?'<div class="al ar" style="margin-top:8px;">⚠️ AI 建議立即前往急診或撥打 119</div>':''}`;
-      document.getElementById('ai-cells').innerHTML=cell('緊急程度',`${j.urgency}/5`,j.urgency>=4?'cr':j.urgency>=3?'ca':'ct')+cell('建議科別',j.dept||'家醫科','cb');
+      const uc={1:'var(--teal)',2:'#65a30d',3:'var(--amber)',4:'var(--rose)',5:'var(--rose)'};
+      const urgColor = uc[j.urgency] || uc[3];
+
+      document.getElementById('ai-main').innerHTML=
+        `<div style="font-family:var(--ff-m);font-size:9px;letter-spacing:1.5px;color:var(--teal);text-transform:uppercase;margin-bottom:6px;">✦ AI 症狀評估（Gemini · 僅供參考）</div>
+        <div class="rbig" style="color:${urgColor};font-size:22px;">${j.label||'待評估'}</div>
+        ${j.warning?`<div class="al ar" style="margin-top:10px;">⚠️ AI 建議注意：${j.warning}</div>`:''}
+        ${j.urgency>=4?'<div class="al ar" style="margin-top:8px;">🚨 AI 建議立即前往急診或撥打 119</div>':''}`;
+
+      document.getElementById('ai-cells').innerHTML=
+        cell('緊急程度',`${j.urgency}/5`, j.urgency>=4?'cr':j.urgency>=3?'ca':'ct') +
+        cell('建議科別', j.dept||'家醫科', 'cb');
+
       let d='';
-      if(j.conditions?.length)d+=`<div class="aiblock"><div class="aih">可能相關疾病（AI 建議參考，非診斷）</div>${j.conditions.map(c=>`<div class="aipt"><div class="aidot"></div>${c}</div>`).join('')}</div>`;
-      if(j.home?.length)d+=`<div class="aiblock"><div class="aih">居家照護建議</div>${j.home.map(c=>`<div class="aipt"><div class="aidot"></div>${c}</div>`).join('')}</div>`;
-      if(j.ai_see?.length)d+=`<div class="aiblock" style="border-color:rgba(244,63,94,.3);"><div class="aih" style="color:var(--rose);">AI 建議就醫的情況</div>${j.ai_see.map(c=>`<div class="aipt"><div class="aidot" style="background:var(--rose);"></div>${c}</div>`).join('')}</div>`;
-      if(j.follow)d+=`<div class="aiblock"><div class="aih">後續追蹤</div><div class="aipt"><div class="aidot"></div>${j.follow}</div></div>`;
+      if(j.conditions?.length) d+=`<div class="aiblock"><div class="aih">可能相關情況（AI 建議參考，非診斷）</div>${j.conditions.map(c=>`<div class="aipt"><div class="aidot"></div>${c}</div>`).join('')}</div>`;
+      if(j.home?.length)       d+=`<div class="aiblock"><div class="aih">居家照護建議（AI 建議）</div>${j.home.map(c=>`<div class="aipt"><div class="aidot"></div>${c}</div>`).join('')}</div>`;
+      if(j.ai_see?.length)     d+=`<div class="aiblock" style="border-color:rgba(244,63,94,.3);"><div class="aih" style="color:var(--rose);">AI 建議就醫的情況</div>${j.ai_see.map(c=>`<div class="aipt"><div class="aidot" style="background:var(--rose);"></div>${c}</div>`).join('')}</div>`;
+      if(j.follow)             d+=`<div class="aiblock"><div class="aih">後續追蹤建議</div><div class="aipt"><div class="aidot"></div>${j.follow}</div></div>`;
+
       document.getElementById('ai-detail').innerHTML=d;
       document.getElementById('rp-ai').classList.add('on');
       document.getElementById('rp-ai').scrollIntoView({behavior:'smooth'});
+
+      // 記錄使用次數（本機，不上傳）
+      const cnt = parseInt(localStorage.getItem('cc_ai_uses')||'0') + 1;
+      localStorage.setItem('cc_ai_uses', cnt);
+      const usageEl = document.getElementById('ai-usage-count');
+      if(usageEl) usageEl.textContent = `本機累計 ${cnt} 次評估`;
     }
-  }catch(e){showToast('AI 評估失敗：'+e.message, 'warn');}finally{hideLoad();}
+  } catch(e){
+    showToast('AI 評估失敗：' + e.message, 'err');
+  } finally{
+    hideLoad();
+  }
 }
+
 
 // ─── DR SECTION ───
 let drSBMode=false;
@@ -214,3 +240,4 @@ function autoEGFR(){
   const age=getDRAge();
   if(cr&&sex&&age){const e=calcEGFR(cr,age,sex);if(e)document.getElementById('dr_egfr').value=e.toFixed(1);}
 }
+
